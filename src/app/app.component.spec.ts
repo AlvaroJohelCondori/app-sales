@@ -1,29 +1,19 @@
 import { TestBed } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
+import { Router } from '@angular/router';
 import { AppComponent } from './app.component';
+import { appConfig } from './app.config';
 
-describe('AppComponent', () => {
-  beforeEach(() => TestBed.configureTestingModule({
-    imports: [RouterTestingModule],
-    declarations: [AppComponent]
-  }));
-
-  it('should create the app', () => {
+describe('Application routes', () => {
+  it('redirects an undefined route to the home page', async () => {
+    await TestBed.configureTestingModule({
+      imports: [AppComponent],
+      providers: appConfig.providers
+    }).compileComponents();
     const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
-  });
-
-  it(`should have as title 'budget-buddy-app'`, () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app.title).toEqual('budget-buddy-app');
-  });
-
-  it('should render title', () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    fixture.detectChanges();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.content span')?.textContent).toContain('budget-buddy-app app is running!');
+    const router = TestBed.inject(Router);
+    await router.navigateByUrl('/posts');
+    await fixture.whenStable();
+    expect(router.url).toBe('/');
+    expect(fixture.nativeElement.querySelector('h1')?.textContent).toContain('Una nueva base');
   });
 });

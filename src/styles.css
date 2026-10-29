@@ -1,0 +1,10 @@
+@layer theme, base, primeng, utilities;
+@import "tailwindcss";
+@import "tailwindcss-primeui";
+
+@layer base {
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+}
