@@ -1,0 +1,77 @@
+<p-dialog
+  [header]="'Detalle de venta #' + sale().id"
+  [visible]="true"
+  (visibleChange)="onVisibleChange($event)"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [dismissableMask]="true"
+  appendTo="body"
+  styleClass="w-[calc(100vw-2rem)] max-h-[90dvh] sm:w-[42rem]"
+>
+  <p class="mb-5 text-xs text-slate-500 dark:text-slate-400">
+    {{ dateTime.format(sale().created_at) }} · {{ dateTime.label() }}
+  </p>
+  <div
+    class="mb-3 flex items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-700 pb-3 text-xs font-medium text-slate-500 dark:text-slate-400"
+  >
+    <span>Productos · {{ sale().details.length }}</span
+    ><span>Subtotal</span>
+  </div>
+  <ul class="divide-y divide-slate-100 dark:divide-slate-800">
+    @for (detail of sale().details; track detail.product_id) {
+      <li class="flex flex-wrap items-center justify-between gap-3 py-4">
+        <div class="flex min-w-0 flex-1 items-start gap-3">
+          <div
+            class="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-400"
+          >
+            @if (hasImage(detail)) {
+              <img
+                [src]="detail.image"
+                [alt]="detail.product"
+                class="size-full object-cover"
+                loading="lazy"
+                referrerpolicy="no-referrer"
+                (error)="onImageError(detail.product_id)"
+              />
+            } @else {
+              <fa-icon
+                [icon]="placeholderIcon"
+                role="img"
+                [attr.aria-label]="'Imagen no disponible de ' + detail.product"
+              />
+            }
+          </div>
+          <div class="min-w-0">
+            <h3
+              class="text-sm leading-5 font-semibold break-words text-slate-900 dark:text-slate-100"
+            >
+              {{ detail.product }}
+            </h3>
+            <p class="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-400">
+              {{ detail.quantity | number }} uds. × {{ detail.price | number: '1.2-2' }}
+            </p>
+          </div>
+        </div>
+        <span
+          class="text-sm font-semibold whitespace-nowrap text-slate-900 dark:text-slate-100 tabular-nums"
+          >{{ detail.subtotal | number: '1.2-2' }}</span
+        >
+      </li>
+    } @empty {
+      <li class="py-6 text-sm text-slate-500 dark:text-slate-400">
+        Esta venta no tiene detalles disponibles.
+      </li>
+    }
+  </ul>
+  <ng-template #footer>
+    <div
+      class="flex w-full items-center justify-between gap-3 border-t border-slate-200 dark:border-slate-700 pt-4"
+    >
+      <span class="text-sm text-slate-500 dark:text-slate-400">Total de la venta</span>
+      <span class="text-2xl font-semibold text-slate-900 dark:text-slate-100 tabular-nums">{{
+        sale().total | number: '1.2-2'
+      }}</span>
+    </div>
+  </ng-template>
+</p-dialog>

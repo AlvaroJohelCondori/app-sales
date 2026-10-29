@@ -1,0 +1,72 @@
+@if (deletion.target(); as sale) {
+  <p-dialog
+    header="Eliminar venta"
+    [focusOnShow]="false"
+    (onShow)="focusCancel()"
+    [visible]="true"
+    (visibleChange)="onVisibleChange($event)"
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [closable]="!deletion.busy()"
+    [closeOnEscape]="!deletion.busy()"
+    appendTo="body"
+    styleClass="w-[calc(100vw-2rem)] max-h-[90dvh] sm:w-[28rem]"
+  >
+    <p class="text-sm leading-6 text-slate-600 dark:text-slate-300">
+      ¿Quieres eliminar esta venta? Dejará de aparecer en el historial.
+    </p>
+    <dl class="my-5 space-y-3 rounded-xl bg-slate-50 dark:bg-slate-950 p-4">
+      <div class="flex items-center justify-between gap-3">
+        <dt class="text-sm text-slate-500 dark:text-slate-400">Venta</dt>
+        <dd class="font-semibold">#{{ sale.id }}</dd>
+      </div>
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <dt class="text-sm text-slate-500 dark:text-slate-400">Fecha · {{ dateTime.label() }}</dt>
+        <dd class="text-sm">{{ dateTime.format(sale.created_at) }}</dd>
+      </div>
+      <div class="flex items-center justify-between gap-3">
+        <dt class="text-sm text-slate-500 dark:text-slate-400">Total</dt>
+        <dd class="text-lg font-semibold tabular-nums">{{ sale.total | number: '1.2-2' }}</dd>
+      </div>
+    </dl>
+    <p class="text-sm leading-6 text-slate-500 dark:text-slate-400">
+      Esta acción no devuelve unidades al stock.
+    </p>
+    @if (deletion.error()) {
+      <div role="alert" class="mt-4">
+        <p-message [severity]="deletion.uncertain() ? 'warn' : 'error'">{{
+          deletion.error()
+        }}</p-message>
+      </div>
+    }
+    <ng-template #footer>
+      <div class="flex w-full flex-wrap justify-end gap-3">
+        <p-button
+          #cancelButton
+          label="Cancelar"
+          [outlined]="true"
+          severity="secondary"
+          [disabled]="deletion.busy()"
+          (onClick)="deletion.cancel()"
+        />
+        @if (deletion.uncertain()) {
+          <p-button
+            label="Comprobar listado"
+            [loading]="deletion.checking()"
+            [disabled]="deletion.busy()"
+            (onClick)="deletion.checkOutcome()"
+          />
+        } @else {
+          <p-button
+            label="Eliminar venta"
+            severity="danger"
+            [loading]="deletion.deleting()"
+            [disabled]="deletion.busy()"
+            (onClick)="deletion.confirm()"
+          />
+        }
+      </div>
+    </ng-template>
+  </p-dialog>
+}

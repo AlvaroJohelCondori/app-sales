@@ -1,0 +1,174 @@
+<section aria-labelledby="overview-title" [attr.aria-busy]="loading()">
+  <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <h1
+        id="overview-title"
+        class="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white"
+      >
+        Resumen
+      </h1>
+      <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+        Una mirada a tus ventas y a tu inventario.
+      </p>
+    </div>
+    <p-button
+      label="Actualizar"
+      [outlined]="true"
+      severity="secondary"
+      [loading]="loading()"
+      [disabled]="loading()"
+      (onClick)="load()"
+    />
+  </div>
+  @if (loading()) {
+    <div role="status" aria-label="Cargando resumen" class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      @for (item of icons; track $index) {
+        <p-skeleton height="8rem" />
+      }
+    </div>
+    <div class="mt-5"><p-skeleton height="20rem" /></div>
+  } @else if (error()) {
+    <p-message severity="error"
+      >No se pudo cargar el resumen completo. Comprueba la conexión y pulsa Actualizar para volver a
+      intentar.</p-message
+    >
+  } @else {
+    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      @for (metric of metrics(); track metric.label; let i = $index) {
+        <article
+          class="min-w-0 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5"
+        >
+          <div
+            class="flex items-center justify-between gap-3 text-sm text-slate-500 dark:text-slate-400"
+          >
+            <h2>{{ metric.label }}</h2>
+            <fa-icon [icon]="icons[i]" class="text-primary" />
+          </div>
+          <p
+            class="mt-3 break-words text-2xl font-semibold tabular-nums text-slate-900 dark:text-white"
+          >
+            {{ metric.value | number: metric.decimals }}
+          </p>
+          <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ metric.hint }}</p>
+        </article>
+      }
+    </div>
+    <div class="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      @for (item of highlights(); track item.label) {
+        <article class="min-w-0 rounded-xl bg-primary-50 dark:bg-primary/10 p-4">
+          <h2 class="text-xs font-medium text-primary-700 dark:text-primary-300">
+            {{ item.label }}
+          </h2>
+          <p class="mt-2 break-words text-sm font-semibold text-slate-900 dark:text-white">
+            {{ item.product?.name ?? 'Sin datos todavía' }}
+          </p>
+          @if (item.product) {
+            <p class="mt-1 text-xs text-slate-600 dark:text-slate-400">
+              {{ item.value | number }} {{ item.unit }}
+            </p>
+          }
+        </article>
+      }
+    </div>
+    <div class="mt-6 grid gap-5 xl:grid-cols-2">
+      <article
+        class="min-w-0 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6"
+      >
+        <h2 class="font-semibold text-slate-900 dark:text-white">Los favoritos del catálogo</h2>
+        <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+          Hasta 5 productos, por unidades vendidas.
+        </p>
+        <ol class="mt-6 space-y-5">
+          @for (product of report().bestSellers; track product.id; let i = $index) {
+            <li>
+              <div class="mb-2 flex items-start justify-between gap-3 text-sm">
+                <span class="min-w-0 break-words"
+                  ><span class="mr-2 text-slate-400">{{ i + 1 }}.</span>{{ product.name }}</span
+                ><span class="shrink-0 font-semibold tabular-nums"
+                  >{{ product.unitsSold | number }}
+                  <span class="text-xs font-normal text-slate-500 dark:text-slate-400"
+                    >uds.</span
+                  ></span
+                >
+              </div>
+              <p-progressbar
+                [value]="(product.unitsSold / (report().top?.unitsSold ?? 1)) * 100"
+                [showValue]="false"
+                [ariaLabel]="product.name + ': ' + product.unitsSold + ' unidades vendidas'"
+                styleClass="!h-1.5"
+              />
+            </li>
+          } @empty {
+            <li class="py-6 text-sm text-slate-500 dark:text-slate-400">
+              Aún no hay ventas de los productos del catálogo.
+            </li>
+          }
+        </ol>
+      </article>
+      <article
+        class="min-w-0 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6"
+      >
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 class="font-semibold text-slate-900 dark:text-white">Inventario a la vista</h2>
+            <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              Los 5 productos con menos unidades disponibles.
+            </p>
+          </div>
+          <a routerLink="/productos" class="text-sm font-medium text-primary hover:underline"
+            >Ver productos</a
+          >
+        </div>
+        <ul class="mt-4 divide-y divide-slate-100 dark:divide-slate-800">
+          @for (product of report().stockWatch; track product.id) {
+            <li class="flex items-center justify-between gap-4 py-3">
+              <span class="min-w-0 break-words text-sm">{{ product.name }}</span
+              ><span
+                class="shrink-0 rounded-md bg-slate-100 dark:bg-slate-800 px-2 py-1 text-xs font-medium tabular-nums"
+                >{{ product.stock | number }} uds.</span
+              >
+            </li>
+          } @empty {
+            <li class="py-6 text-sm text-slate-500 dark:text-slate-400">
+              No hay productos en el catálogo.
+            </li>
+          }
+        </ul>
+        <p class="mt-3 text-xs text-slate-500 dark:text-slate-400">
+          {{ report().withoutSales | number }} productos del catálogo sin ventas registradas.
+        </p>
+      </article>
+    </div>
+    <article
+      class="mt-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6"
+    >
+      <div class="flex items-center justify-between gap-3">
+        <h2 class="font-semibold text-slate-900 dark:text-white">Últimas ventas</h2>
+        <a routerLink="/ventas" class="text-sm font-medium text-primary hover:underline"
+          >Ver ventas</a
+        >
+      </div>
+      <ul class="mt-3 divide-y divide-slate-100 dark:divide-slate-800">
+        @for (sale of report().recent; track sale.id) {
+          <li class="flex flex-wrap items-center justify-between gap-3 py-3">
+            <div>
+              <p class="text-sm font-medium">Venta #{{ sale.id }}</p>
+              <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                {{ dateTime.format(sale.created_at) }} · {{ dateTime.label() }}
+              </p>
+            </div>
+            <span class="font-semibold tabular-nums">{{ sale.total | number: '1.2-2' }}</span>
+          </li>
+        } @empty {
+          <li class="py-5 text-sm text-slate-500 dark:text-slate-400">
+            No hay ventas registradas. Tu actividad aparecerá aquí.
+          </li>
+        }
+      </ul>
+    </article>
+    <p class="mt-5 text-xs leading-5 text-slate-500 dark:text-slate-400">
+      Resumen del historial disponible, sin filtro de fechas. Comparativas entre productos del
+      catálogo actual; los empates se ordenan por ID. Las ventas eliminadas no se incluyen.
+    </p>
+  }
+</section>

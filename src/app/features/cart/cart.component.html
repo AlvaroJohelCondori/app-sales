@@ -1,0 +1,222 @@
+<p-button
+  [text]="true"
+  [rounded]="true"
+  severity="secondary"
+  [badge]="cart.quantity() ? cart.quantity().toString() : ''"
+  badgeSeverity="success"
+  [ariaLabel]="'Abrir carrito, ' + cart.quantity() + ' unidades'"
+  (onClick)="cart.visible.set(true)"
+>
+  <fa-icon [icon]="icons.cart" />
+</p-button>
+<p-toast
+  [baseZIndex]="2000"
+  position="bottom-right"
+  [breakpoints]="{ '640px': { width: 'calc(100vw - 2rem)', right: '1rem', bottom: '1rem' } }"
+/>
+
+<p-drawer
+  header="Nueva venta"
+  position="right"
+  [visible]="cart.visible()"
+  (visibleChange)="cart.visible.set($event)"
+  [blockScroll]="true"
+  appendTo="body"
+  styleClass="w-full sm:w-[30rem]"
+  ariaCloseLabel="Cerrar carrito"
+>
+  @if (cart.lastSale(); as result) {
+    <div role="status" class="py-8 text-center">
+      <span
+        class="mx-auto flex size-14 items-center justify-center rounded-full bg-primary-50 dark:bg-primary/10 text-primary"
+        ><fa-icon [icon]="icons.check" size="lg"
+      /></span>
+      <h2 class="mt-5 text-xl font-semibold text-slate-900 dark:text-slate-100">
+        {{ result.message }}
+      </h2>
+      <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Venta #{{ result.sale_id }}</p>
+      <p class="mt-4 text-3xl font-semibold tabular-nums">{{ result.total | number: '1.2-2' }}</p>
+      <div class="mt-6 flex flex-wrap justify-center gap-3">
+        <p-button label="Ver ventas" routerLink="/ventas" (onClick)="cart.visible.set(false)" />
+        <p-button
+          label="Seguir comprando"
+          [outlined]="true"
+          routerLink="/productos"
+          (onClick)="cart.visible.set(false)"
+        />
+      </div>
+    </div>
+  } @else if (cart.lines().length === 0) {
+    <div class="py-12 text-center">
+      <fa-icon [icon]="icons.cart" size="2x" class="text-primary" />
+      <h2 class="mt-5 text-lg font-semibold">Tu carrito está vacío</h2>
+      <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+        Agrega productos para preparar una venta.
+      </p>
+      <div class="mt-5">
+        <p-button
+          label="Explorar productos"
+          routerLink="/productos"
+          (onClick)="cart.visible.set(false)"
+        />
+      </div>
+    </div>
+  } @else {
+    <p class="mb-5 text-xs leading-5 text-slate-500 dark:text-slate-400">
+      Revisa los productos y las cantidades. La venta se registrará con el usuario #1.
+    </p>
+    @if (cart.error()) {
+      <div role="alert" class="mb-5">
+        <p-message [severity]="cart.requiresReview() ? 'warn' : 'error'">{{
+          cart.error()
+        }}</p-message>
+      </div>
+    }
+    @if (cart.formErrors().length) {
+      <ul class="mb-5 list-inside list-disc text-sm leading-6 text-red-600 dark:text-red-400">
+        @for (message of cart.formErrors(); track $index) {
+          <li>{{ message }}</li>
+        }
+      </ul>
+    }
+    @if (cart.requiresReview()) {
+      <div class="mb-5 flex flex-col gap-3">
+        <p-button label="Revisar ventas" routerLink="/ventas" (onClick)="cart.visible.set(false)" />
+        <p-button
+          label="Ya revisé ventas, permitir reintento"
+          [outlined]="true"
+          severity="secondary"
+          (onClick)="cart.acknowledgeReview()"
+        />
+      </div>
+    }
+    <ul class="space-y-4">
+      @for (line of cart.lines(); track line.product.id) {
+        <li class="rounded-xl border border-slate-200 dark:border-slate-800 p-4">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <h2 class="text-sm font-semibold break-words">{{ line.product.name }}</h2>
+              <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                {{ cart.unitPrice(line) === null ? '—' : (cart.unitPrice(line) | number: '1.2-2') }}
+                por unidad
+              </p>
+            </div>
+            <p-button
+              [text]="true"
+              size="small"
+              severity="danger"
+              [ariaLabel]="'Quitar ' + line.product.name"
+              [disabled]="cart.locked()"
+              (onClick)="cart.remove(line.product.id)"
+              ><fa-icon [icon]="icons.remove"
+            /></p-button>
+          </div>
+          <div class="mt-4 flex items-end justify-between gap-3">
+            <div>
+              <label
+                [for]="'quantity-' + line.product.id"
+                class="mb-2 block text-xs text-slate-500 dark:text-slate-400"
+                >Cantidad</label
+              >
+              <div
+                class="flex w-fit items-center overflow-hidden rounded-lg border border-slate-300 dark:border-slate-600 data-[invalid=true]:border-red-500 dark:data-[invalid=true]:border-red-400"
+                [attr.data-invalid]="
+                  !!cart.quantityError(line) || !!cart.lineErrors()[line.product.id]?.length
+                "
+              >
+                <p-button
+                  [text]="true"
+                  severity="secondary"
+                  [ariaLabel]="'Reducir cantidad de ' + line.product.name"
+                  [disabled]="cart.locked() || !!cart.quantityError(line) || line.quantity <= 1"
+                  (onClick)="cart.setQuantity(line.product.id, line.quantity - 1)"
+                  ><fa-icon [icon]="icons.minus"
+                /></p-button>
+                <input
+                  pInputText
+                  type="text"
+                  inputmode="numeric"
+                  autocomplete="off"
+                  maxlength="16"
+                  required
+                  [id]="'quantity-' + line.product.id"
+                  [value]="cart.quantityValue(line)"
+                  (input)="onQuantityInput(line.product.id, $event)"
+                  (blur)="cart.normalizeQuantity(line.product.id)"
+                  [disabled]="cart.locked()"
+                  [attr.aria-invalid]="
+                    !!cart.quantityError(line) || !!cart.lineErrors()[line.product.id]?.length
+                  "
+                  [attr.aria-describedby]="
+                    'quantity-help-' + line.product.id + ' quantity-errors-' + line.product.id
+                  "
+                  class="w-14 rounded-none border-0 text-center shadow-none"
+                />
+                <p-button
+                  [text]="true"
+                  severity="secondary"
+                  [ariaLabel]="'Aumentar cantidad de ' + line.product.name"
+                  [disabled]="
+                    cart.locked() ||
+                    !!cart.quantityError(line) ||
+                    line.quantity >= cart.maxQuantity(line.product)
+                  "
+                  (onClick)="cart.setQuantity(line.product.id, line.quantity + 1)"
+                  ><fa-icon [icon]="icons.plus"
+                /></p-button>
+              </div>
+              <p
+                [id]="'quantity-help-' + line.product.id"
+                class="mt-2 text-[11px] text-slate-500 dark:text-slate-400"
+              >
+                Disponible: {{ cart.maxQuantity(line.product) | number }} uds.
+              </p>
+            </div>
+            <span class="pb-2 text-base font-semibold whitespace-nowrap tabular-nums">{{
+              cart.subtotal(line) === null ? '—' : (cart.subtotal(line) | number: '1.2-2')
+            }}</span>
+          </div>
+          <div [id]="'quantity-errors-' + line.product.id">
+            @if (cart.quantityError(line); as error) {
+              <p role="alert" class="mt-3 text-xs leading-5 text-red-600 dark:text-red-400">
+                {{ error }}
+              </p>
+            }
+            @for (error of cart.lineErrors()[line.product.id] ?? []; track $index) {
+              <p role="alert" class="mt-3 text-xs leading-5 text-red-600 dark:text-red-400">
+                {{ error }}
+              </p>
+            }
+          </div>
+        </li>
+      }
+    </ul>
+  }
+  <ng-template #footer>
+    @if (cart.lines().length > 0 && !cart.lastSale()) {
+      <div class="border-t border-slate-200 dark:border-slate-800 pt-4">
+        <div class="mb-3 flex items-center justify-between gap-3">
+          <span class="text-sm text-slate-500 dark:text-slate-400">Total estimado</span
+          ><strong class="text-2xl tabular-nums">{{
+            cart.estimatedTotal() === null ? '—' : (cart.estimatedTotal() | number: '1.2-2')
+          }}</strong>
+        </div>
+        @if (cart.validationMessage(); as message) {
+          <p role="alert" class="mb-3 text-xs leading-5 text-red-600 dark:text-red-400">
+            {{ message }}
+          </p>
+        }
+        <p class="mb-4 text-xs leading-5 text-slate-500 dark:text-slate-400">
+          El servidor confirmará el precio y el stock definitivos.
+        </p>
+        <p-button
+          label="Confirmar venta"
+          [fluid]="true"
+          [loading]="cart.submitting()"
+          [disabled]="!cart.canSubmit()"
+          (onClick)="cart.submit()"
+        />
+      </div>
+    }
+  </ng-template>
+</p-drawer>

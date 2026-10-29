@@ -1,0 +1,98 @@
+<div
+  class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 lg:grid lg:grid-cols-[248px_minmax(0,1fr)]"
+>
+  <aside
+    class="flex flex-col border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 lg:border-r lg:border-b-0 lg:sticky lg:top-0 lg:h-screen"
+  >
+    <a
+      routerLink="/resumen"
+      aria-label="App Sales, ir al resumen"
+      class="flex items-center gap-3 px-6 py-7"
+    >
+      <span
+        class="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-contrast"
+      >
+        <fa-icon [icon]="icons.brand" size="lg" />
+      </span>
+      <span class="text-xl font-semibold tracking-tight"
+        >App Sales<span class="text-primary">.</span></span
+      >
+    </a>
+
+    <div class="px-4 pb-4 lg:mt-5">
+      <p
+        class="mb-3 hidden px-3 text-[10px] font-semibold tracking-[0.2em] text-slate-400 lg:block"
+      >
+        ESPACIO DE TRABAJO
+      </p>
+      <nav aria-label="Navegación principal" class="grid grid-cols-3 gap-1 lg:grid-cols-1">
+        <a
+          routerLink="/resumen"
+          routerLinkActive="font-semibold"
+          ariaCurrentWhenActive="page"
+          class="aria-[current=page]:bg-highlight flex items-center justify-center gap-2 rounded-xl px-2 py-3 text-sm font-medium text-slate-600 dark:text-slate-300 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-primary lg:justify-start lg:gap-3 lg:px-4"
+          ><fa-icon [icon]="icons.overview" class="w-5 text-center" /> Resumen</a
+        >
+        <a
+          routerLink="/productos"
+          routerLinkActive="font-semibold"
+          ariaCurrentWhenActive="page"
+          class="aria-[current=page]:bg-highlight flex items-center justify-center gap-2 rounded-xl px-2 py-3 text-sm font-medium lg:justify-start lg:gap-3 lg:px-4 text-slate-600 dark:text-slate-300 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-primary"
+        >
+          <fa-icon [icon]="icons.products" class="w-5 text-center" /> Productos
+        </a>
+        <a
+          routerLink="/ventas"
+          routerLinkActive="font-semibold"
+          ariaCurrentWhenActive="page"
+          class="aria-[current=page]:bg-highlight flex items-center justify-center gap-2 rounded-xl px-2 py-3 text-sm font-medium lg:justify-start lg:gap-3 lg:px-4 text-slate-600 dark:text-slate-300 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-primary"
+        >
+          <fa-icon [icon]="icons.sales" class="w-5 text-center" /> Ventas
+        </a>
+      </nav>
+    </div>
+
+    <div
+      class="mx-6 mb-7 mt-auto hidden border-t border-slate-200 dark:border-slate-800 pt-5 lg:block"
+    >
+      <p class="text-xs font-medium text-slate-500 dark:text-slate-400">
+        Simple. Claro. Organizado.
+      </p>
+      <p class="mt-1 text-xs text-slate-400">Tu espacio de gestión</p>
+    </div>
+  </aside>
+
+  <div class="min-w-0">
+    <header
+      class="flex h-14 items-center justify-between gap-3 border-b border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 px-5 sm:px-8 lg:px-12"
+    >
+      <span class="hidden min-w-0 text-sm font-medium text-slate-500 dark:text-slate-400 sm:block"
+        >Panel de gestión</span
+      >
+      <div class="ml-auto flex min-w-0 items-center gap-2 sm:gap-3">
+        <app-time-zone-selector />
+        <app-cart />
+        <p-button
+          [text]="true"
+          [rounded]="true"
+          severity="secondary"
+          [ariaLabel]="theme.isDark() ? 'Activar modo claro' : 'Activar modo oscuro'"
+          (onClick)="theme.toggle()"
+        >
+          <fa-icon [icon]="theme.isDark() ? icons.sun : icons.moon" />
+        </p-button>
+        <span
+          aria-hidden="true"
+          class="hidden size-9 items-center justify-center rounded-full sm:flex bg-primary-50 dark:bg-primary/10 text-xs font-bold text-primary-700 dark:text-primary-300"
+          >AS</span
+        >
+      </div>
+    </header>
+    <main id="main-content" class="mx-auto max-w-7xl px-5 py-8 sm:px-8 lg:px-12 lg:py-12">
+      <router-outlet />
+    </main>
+    <footer class="px-5 pb-8 text-center text-xs text-slate-400">
+      App Sales · Un espacio para tus productos y ventas
+    </footer>
+  </div>
+</div>

@@ -1,0 +1,27 @@
+<p-select
+  [options]="zone.options"
+  optionLabel="label"
+  optionValue="value"
+  [ngModel]="zone.preference()"
+  (ngModelChange)="zone.select($event)"
+  ariaLabel="Zona horaria"
+  size="small"
+  scrollHeight="20rem"
+  appendTo="body"
+  styleClass="w-44 sm:w-48"
+>
+  <ng-template #selectedItem>
+    <span class="flex min-w-0 items-center gap-2">
+      <fa-icon [icon]="globeIcon" class="shrink-0 text-slate-500 dark:text-slate-400" />
+      <span class="truncate"
+        >{{ zone.preference() === 'auto' ? 'Auto · ' : '' }}{{ zone.label() }}</span
+      >
+    </span>
+  </ng-template>
+  <ng-template #item let-option>
+    <div class="min-w-0 py-1">
+      <p class="text-sm font-medium">{{ option.label }}</p>
+      <p class="mt-1 text-[11px] text-slate-500 dark:text-slate-400">{{ option.description }}</p>
+    </div>
+  </ng-template>
+</p-select>

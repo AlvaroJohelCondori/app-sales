@@ -1,0 +1,183 @@
+<section aria-labelledby="sales-title" [attr.aria-busy]="loading()">
+  <header class="mb-4 flex flex-wrap items-center justify-between gap-3">
+    <h1
+      id="sales-title"
+      tabindex="-1"
+      class="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100"
+    >
+      Ventas
+    </h1>
+    @if (!loading() && !error()) {
+      <dl
+        class="flex w-fit flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-2"
+      >
+        <div class="flex items-baseline gap-2">
+          <dt class="text-xs text-slate-500 dark:text-slate-400">Ventas</dt>
+          <dd class="text-sm font-semibold text-slate-900 dark:text-slate-100 tabular-nums">
+            {{ sales().length | number }}
+          </dd>
+        </div>
+        <div class="flex items-baseline gap-2 border-l border-slate-200 dark:border-slate-700 pl-4">
+          <dt class="text-xs text-slate-500 dark:text-slate-400">Importe total</dt>
+          <dd class="text-sm font-semibold text-slate-900 dark:text-slate-100 tabular-nums">
+            {{ total() | number: '1.2-2' }}
+          </dd>
+        </div>
+      </dl>
+    }
+  </header>
+
+  @if (loading()) {
+    <p role="status" class="mb-4 text-sm text-slate-500 dark:text-slate-400">Cargando ventas…</p>
+    <div
+      aria-hidden="true"
+      class="space-y-3 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5"
+    >
+      @for (item of skeletons; track item) {
+        <p-skeleton height="4rem" />
+      }
+    </div>
+  } @else if (error()) {
+    <div
+      role="alert"
+      class="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8"
+    >
+      <h2 class="mb-3 text-lg font-semibold text-slate-900 dark:text-slate-100">
+        No pudimos mostrar las ventas
+      </h2>
+      <p-message severity="error">{{ error() }}</p-message>
+      <div class="mt-5"><p-button label="Reintentar" (onClick)="loadSales()" /></div>
+    </div>
+  } @else if (sales().length === 0) {
+    <div
+      role="status"
+      class="rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-6 py-16 text-center"
+    >
+      <span
+        class="mx-auto flex size-14 items-center justify-center rounded-2xl bg-primary-50 dark:bg-primary/10 text-primary"
+        ><fa-icon [icon]="receiptIcon" size="lg"
+      /></span>
+      <h2 class="mt-5 text-lg font-semibold text-slate-900 dark:text-slate-100">
+        No hay ventas registradas
+      </h2>
+      <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+        Las ventas aparecerán aquí cuando estén disponibles.
+      </p>
+    </div>
+  } @else {
+    <h2 class="sr-only">Historial de ventas</h2>
+    <div
+      class="hidden overflow-hidden rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 md:block"
+    >
+      <p-table [value]="sales()" [tableStyle]="{ 'min-width': '36rem' }">
+        <ng-template #header>
+          <tr>
+            <th scope="col">Venta</th>
+            <th scope="col">Fecha · {{ dateTime.label() }}</th>
+            <th scope="col">Productos</th>
+            <th scope="col">Total</th>
+            <th scope="col"><span class="sr-only">Acciones</span></th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-sale>
+          <tr>
+            <td>
+              <span class="font-semibold text-slate-900 dark:text-slate-100">#{{ sale.id }}</span>
+            </td>
+            <td>
+              <span class="text-sm whitespace-nowrap">{{ dateTime.format(sale.created_at) }}</span>
+            </td>
+            <td>
+              <span class="text-sm">{{ sale.details.length }} productos</span
+              ><span class="mt-1 block text-xs text-slate-500 dark:text-slate-400"
+                >{{ units(sale) | number }} unidades</span
+              >
+            </td>
+            <td>
+              <span class="font-semibold whitespace-nowrap tabular-nums">{{
+                sale.total | number: '1.2-2'
+              }}</span>
+            </td>
+            <td>
+              <div class="flex items-center gap-1">
+                <p-button
+                  label="Ver detalle"
+                  size="small"
+                  [text]="true"
+                  [ariaLabel]="'Ver detalle de venta #' + sale.id"
+                  (onClick)="selectedSale.set(sale)"
+                />
+                <p-button
+                  [text]="true"
+                  size="small"
+                  severity="danger"
+                  [ariaLabel]="'Eliminar venta #' + sale.id"
+                  [disabled]="deletion.busy()"
+                  (onClick)="deletion.request(sale)"
+                  ><fa-icon [icon]="deleteIcon"
+                /></p-button>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+
+    <div class="space-y-3 md:hidden">
+      @for (sale of sales(); track sale.id) {
+        <article
+          class="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5"
+        >
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h3 class="font-semibold text-slate-900 dark:text-slate-100">Venta #{{ sale.id }}</h3>
+              <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                {{ dateTime.format(sale.created_at) }}
+              </p>
+            </div>
+            <span
+              class="text-lg font-semibold whitespace-nowrap text-slate-900 dark:text-slate-100 tabular-nums"
+              >{{ sale.total | number: '1.2-2' }}</span
+            >
+          </div>
+          <div
+            class="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 dark:border-slate-800 pt-3"
+          >
+            <p class="text-xs text-slate-500 dark:text-slate-400">
+              {{ sale.details.length }} productos · {{ units(sale) | number }} unidades
+            </p>
+            <div class="ml-auto flex items-center gap-1">
+              <p-button
+                label="Ver detalle"
+                size="small"
+                [text]="true"
+                [ariaLabel]="'Ver detalle de venta #' + sale.id"
+                (onClick)="selectedSale.set(sale)"
+              />
+              <p-button
+                [text]="true"
+                size="small"
+                severity="danger"
+                [ariaLabel]="'Eliminar venta #' + sale.id"
+                [disabled]="deletion.busy()"
+                (onClick)="deletion.request(sale)"
+                ><fa-icon [icon]="deleteIcon"
+              /></p-button>
+            </div>
+          </div>
+        </article>
+      }
+    </div>
+    <p class="mt-4 text-xs text-slate-500 dark:text-slate-400">
+      Más recientes primero · Zona horaria: {{ dateTime.timeZone() }}
+    </p>
+  }
+</section>
+
+@if (selectedSale(); as sale) {
+  <app-sale-details [sale]="sale" (closed)="selectedSale.set(null)" />
+}
+
+@if (deletion.target()) {
+  <app-sale-delete-dialog />
+}

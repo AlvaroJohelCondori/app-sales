@@ -1,0 +1,79 @@
+<section aria-labelledby="products-title" [attr.aria-busy]="loading()">
+  <header class="mb-4 flex flex-wrap items-center justify-between gap-3">
+    <h1
+      id="products-title"
+      class="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100"
+    >
+      Productos
+    </h1>
+    @if (!loading() && !error()) {
+      <dl
+        class="flex w-fit flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-2"
+      >
+        <div class="flex items-baseline gap-2">
+          <dt class="text-xs text-slate-500 dark:text-slate-400">Productos</dt>
+          <dd class="text-sm font-semibold text-slate-900 dark:text-slate-100 tabular-nums">
+            {{ products().length | number }}
+          </dd>
+        </div>
+        <div class="flex items-baseline gap-2 border-l border-slate-200 dark:border-slate-700 pl-4">
+          <dt class="text-xs text-slate-500 dark:text-slate-400">Unidades en stock</dt>
+          <dd class="text-sm font-semibold text-slate-900 dark:text-slate-100 tabular-nums">
+            {{ totalStock() | number }}
+          </dd>
+        </div>
+      </dl>
+    }
+  </header>
+
+  @if (loading()) {
+    <p role="status" class="mb-5 text-sm text-slate-500 dark:text-slate-400">Cargando productos…</p>
+    <div aria-hidden="true" class="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+      @for (item of skeletons; track item) {
+        <p-card
+          styleClass="overflow-hidden border border-slate-200/80 dark:border-slate-800 shadow-none"
+        >
+          <ng-template #header><p-skeleton height="11rem" borderRadius="0" /></ng-template>
+          <p-skeleton width="25%" styleClass="mb-3" />
+          <p-skeleton width="85%" height="1.5rem" styleClass="mb-6" />
+          <div class="flex items-center justify-between gap-4">
+            <p-skeleton width="6rem" height="2rem" /><p-skeleton width="5rem" />
+          </div>
+        </p-card>
+      }
+    </div>
+  } @else if (error()) {
+    <div
+      role="alert"
+      class="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8"
+    >
+      <h2 class="mb-3 text-lg font-semibold text-slate-900 dark:text-slate-100">
+        No pudimos mostrar el catálogo
+      </h2>
+      <p-message severity="error">{{ error() }}</p-message>
+      <div class="mt-5"><p-button label="Reintentar" (onClick)="loadProducts()" /></div>
+    </div>
+  } @else if (products().length === 0) {
+    <div
+      role="status"
+      class="rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-6 py-16 text-center"
+    >
+      <span
+        class="mx-auto flex size-14 items-center justify-center rounded-2xl bg-primary-50 dark:bg-primary/10 text-primary"
+        ><fa-icon [icon]="placeholderIcon" size="lg"
+      /></span>
+      <h2 class="mt-5 text-lg font-semibold text-slate-900 dark:text-slate-100">
+        No hay productos disponibles
+      </h2>
+      <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+        El catálogo está vacío en este momento.
+      </p>
+    </div>
+  } @else {
+    <div class="grid items-stretch gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+      @for (product of products(); track product.id) {
+        <app-product-card class="min-w-0" [product]="product" />
+      }
+    </div>
+  }
+</section>
